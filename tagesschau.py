@@ -4,9 +4,14 @@ import socket
 from time import sleep
 import os
 import re
-player = "mpv"
-url = "https://www.tagesschau.de/"
+import sys
 
+if len(sys.argv) > 1: 
+    player = sys.argv[1]
+else:
+    player = "castnow"
+url = "https://www.tagesschau.de/multimedia/"
+legit_types = [0000, 3400, 2000]
 pattern = re.compile(
         r"https://download\.media\.tagesschau\.de/video/\d\d\d\d/\d\d\d\d/TV-\d\d\d\d\d\d\d\d-\d\d\d\d-\d\d00\.webxl\.h264\.mp4"
         )
@@ -27,12 +32,12 @@ def get_all_mp4():
 
 def get_valid_urls(mp4s):
     urls = []
-    legit_types = [0000, 3400]
     for  mp4 in mp4s:
         url  = mp4.group(0)
         type = int(url[-19:-15])
         for legit in legit_types:
             if type == legit:
+                print(url)
                 urls.append(url)
     return urls
 
