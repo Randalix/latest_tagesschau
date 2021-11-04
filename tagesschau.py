@@ -1,34 +1,50 @@
 #!/usr/bin/env python3
 import requests
+import json
+from bs4 import BeautifulSoup
+import os
 import socket
 from time import sleep
-import os
-import re
-player = "mpv"
+import sys
+
+
 def wait_till_online():
     try:
-        host = socket.gethostbyname("google.com")
+        host = socket.gethostbyname("tagesschau.de")
     except:
         sleep(1)
+        print("offline")
         wait_till_online()
 
+def get_latest(links):
+    return  sorted(links)[-1]
+
+def scrape_links(url):
+    page = requests.get(url)
+    soup = BeautifulSoup(page.content, 'html.parser')
+    # players = soup.find_all('div',  {"class": "ts-mediaplayer ts-mediaplayer--einszueins ts-mediaplayer--list"})
+
+    players = soup.find_all('div',  {"class": "ts-mediaplayer"})
+    links = []
+    for player_item in players:
+        attribs = player_item.attrs
+        data = attribs["data-config"]
+        try:
+            title = json.loads(data)["mc"]["_title"]
+            if "tsde" in title or title == "Ganze Sendung":
+                if "Gebärdensprache" not in data:
+                    links.append(json.loads(data)["mc"]['_mediaArray'][0]["_mediaStreamArray"][4]["_stream"])
+        except KeyError:
+            pass
+    return links
+
+player = "castnow"
+if len(sys.argv) > 1: 
+    player = sys.argv[1]
+url = "https://www.tagesschau.de/multimedia/"
 wait_till_online()
-
-url = "https://www.tagesschau.de/"
-page = requests.get(url).text
-pattern = re.compile(
-        r"https://download\.media\.tagesschau\.de/video/\d\d\d\d/\d\d\d\d/TV-\d\d\d\d\d\d\d\d-\d\d\d\d-\d\d00\.webxl\.h264\.mp4"
-        )
-matches = pattern.finditer(page)
-urls = []
-legit_types = [0000, 3400]
-for match in matches:
-    url  = match.group(0)
-    type = int(url[-19:-15])
-    for legit in legit_types:
-        if type == legit:
-            urls.append(url)
-
-url = urls[-1]
+links = scrape_links(url)
+url = get_latest(links)
 cmd = f"{player} {url}"
+print(cmd)
 os.system(cmd)
