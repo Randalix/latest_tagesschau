@@ -2,10 +2,10 @@
 import requests
 import json
 from bs4 import BeautifulSoup
-import os
 import socket
 from time import sleep
 import sys
+import os
 
 
 def wait_till_online():
@@ -22,8 +22,6 @@ def get_latest(links):
 def scrape_links(url):
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
-    # players = soup.find_all('div',  {"class": "ts-mediaplayer ts-mediaplayer--einszueins ts-mediaplayer--list"})
-
     players = soup.find_all('div',  {"class": "ts-mediaplayer"})
     links = []
     for player_item in players:
@@ -38,13 +36,11 @@ def scrape_links(url):
             pass
     return links
 
-player = "castnow"
-if len(sys.argv) > 1: 
-    player = sys.argv[1]
 url = "https://www.tagesschau.de/multimedia/"
 wait_till_online()
 links = scrape_links(url)
 url = get_latest(links)
-cmd = f"{player} {url}"
-print(cmd)
-os.system(cmd)
+print(url)
+if len(sys.argv) > 1: 
+    player = sys.argv[1]
+    os.system(f'{player} {url}')
