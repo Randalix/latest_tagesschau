@@ -46,5 +46,4 @@ wait_till_online()
 links = scrape_links(url)
 url = get_latest(links)
 cmd = f"{player} {url}"
-print(cmd)
 os.system(cmd)
